@@ -16,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('python-cprofile.profileCode', async () => {
         try {
             const editor = requirePythonEditor();
-            runCProfile(editor.document.fileName);
+            await runCProfile(editor.document.fileName);
         } catch (error: any) {
             vscode.window.showErrorMessage(error.message);
         }
@@ -25,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('python-cprofile.addInlineHints', async () => {
         try {
             const editor = requirePythonEditor();
-            parseCProfileOutput();
+            await parseCProfileOutput();
         } catch (error: any) {
             vscode.window.showErrorMessage(error.message);
         }
@@ -34,7 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.onDidChangeActiveTextEditor(async (editor?: vscode.TextEditor) => {
         if (editor && editor.document.languageId === 'python') {
             try {
-                parseCProfileOutput();
+                await parseCProfileOutput();
             } catch (error: any) {
                 // Ignore errors
             }

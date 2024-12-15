@@ -1,49 +1,48 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 
-export function addInlineHints(profileData: string, filePath: string) {
+export function addInlineHints(profileData: string) {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
         return;
     }
+    const filePath = editor.document.fileName;
 
-    const lines = profileData.split('\n');
+    const thisFileData = profileData.split('\n')
+                                .map(line => line.split(' '))
+                                .filter(line => line[0] === filePath || line[0] === filePath.substring(filePath.lastIndexOf(path.delimiter + 1)));
+    if (!thisFileData) {
+        return;
+    }
+    const thisFileMaxTime = Math.max(...thisFileData.map(data => parseFloat(data[3])));
 
-    lines.forEach(line => {
-        const match = line.match(/(\d+\.\d+)\s+(\S+)\s+(\S+)\s+(\d+)/);
-        if (match) {
-            const [_, time, functionName, filename, line] = match;
-            if (filename !== filePath) {
-                return;
+    thisFileData.forEach(data => {
+        const [filename, functionName, lineNumText, time] = data;
+        const lineNum = parseInt(lineNumText) - 1;
+        const executionTime = parseFloat(time);
+        const roundedTime = executionTime.toFixed(3);
+        const color = getColorForExecutionTime(executionTime, thisFileMaxTime);
+
+        const decorationType = vscode.window.createTextEditorDecorationType({
+            backgroundColor: color,
+            isWholeLine: true,
+            after: {
+                contentText: `${roundedTime}s (${functionName})`,
+                color: '(255,255,255,0.4)',
+                margin: '0 0 0 1em'
             }
-            const executionTime = parseFloat(time);
-            const roundedTime = executionTime.toFixed(3);
-            const color = getColorForExecutionTime(executionTime);
-            const lineNum = parseInt(line) - 1;
-
-            const decorationType = vscode.window.createTextEditorDecorationType({
-                backgroundColor: color,
-                after: {
-                    contentText: ` ${roundedTime}s`,
-                    color: 'white',
-                    margin: '0 0 0 1em'
-                }
-            });
-
-            const lineText = editor.document.lineAt(lineNum).text;
-            const range = new vscode.Range(lineNum, 0, lineNum, lineText.length);
-            const decorations: vscode.DecorationOptions[] = [];
-            decorations.push({ range });
-            editor.setDecorations(decorationType, decorations);
-        }
+        });
+        const range = new vscode.Range(lineNum, 0, lineNum, 0);
+        const options: vscode.DecorationOptions[] = [{ range }];
+        editor.setDecorations(decorationType, options);
     });
+
+    //TODO - Refresh decorations after new cprofile run
+    //TODO - Check if works for windows
 }
 
-function getColorForExecutionTime(time: number): string {
-    if (time > 1) {
-        return 'rgba(255, 0, 0, 0.5)'; // Red for high execution time
-    } else if (time > 0.5) {
-        return 'rgba(255, 165, 0, 0.5)'; // Orange for medium execution time
-    } else {
-        return 'rgba(0, 255, 0, 0.5)'; // Green for low execution time
-    }
+function getColorForExecutionTime(time: number, maxTime: number): string {
+    const MAX_ALPHA = 0.8;
+    const alpha = Math.min(time / maxTime, MAX_ALPHA);
+    return `rgba(255, 0, 0, ${alpha})`;
 }

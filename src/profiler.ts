@@ -1,97 +1,79 @@
 import * as vscode from 'vscode';
-import * as child_process from 'child_process';
+import * as childProcess from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
-import { promisify } from 'util';
 import { addInlineHints } from './decorators';
 
-const readdir = promisify(fs.readdir);
-const stat = promisify(fs.stat);
+const OUTPUT_FILE_NAME = "cProfile.prof";
 
-async function getSelectedInterpreter() {
+async function getPythonPath() {
     const pythonExtension = vscode.extensions.getExtension('ms-python.python');
     if (!pythonExtension) {
         throw new Error('Python extension is not installed');
     }
-
-    // Activate the Python extension
     const pythonApi = await pythonExtension.activate();
     if (!pythonApi) {
         throw new Error('Failed to activate Python extension');
     }
-
-    // Get the selected interpreter
-    const interpreter = await pythonApi.environments.getActiveEnvironmentPath();
-    if (!interpreter) {
+    const selectedInterpreter = await pythonApi.environments.getActiveEnvironmentPath();
+    if (!selectedInterpreter) {
         throw new Error('No active interpreter found');
     }
-
-    return interpreter;
+    return selectedInterpreter.path;
 }
 
-export async function parseAndAddInlineHints() {
-    console.log('Parsing and adding inline hints');
-    const outputFilePath = "cprofiler.prof";
-    // return if the file does not exist
+function goToWorkspaceWithProfileFile() {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) {
-        vscode.window.showErrorMessage('No workspace folder is open');
-        return null;
+        throw new Error('No workspace folder is open');
     }
-    const workspacePath = workspaceFolders[0].uri.fsPath;
-    process.chdir(workspacePath);
-    const fullPath = path.join(workspacePath, outputFilePath);
-    if (!fs.existsSync(outputFilePath)) {
-        return;
-    }
-    const pythonInterpreter = await getSelectedInterpreter();
-    const pythonPath = pythonInterpreter.path;
-    const parseScriptPath = path.join(__dirname, 'parse_profile.py');
-    const parseCommand = `${pythonPath} ${parseScriptPath} ${outputFilePath}`;
-    child_process.exec(parseCommand, (parseError, parseStdout, parseStderr) => {
-        if (parseError) {
-            vscode.window.showErrorMessage(`Error parsing profile data: ${parseStderr}`);
-            console.error(`Error parsing profile data: ${parseStderr}`);
+    let found = false;
+    workspaceFolders.forEach(async (folder) => {
+        const fullPath = path.join(folder.uri.fsPath, OUTPUT_FILE_NAME);
+        if (fs.existsSync(fullPath)) {
+            process.chdir(folder.uri.fsPath);
+            found = true;
             return;
         }
+    });
+    if (!found) {
+        throw new Error('No profile data found');
+    }
+}
 
-        try {
-            const editorPath = vscode.window.activeTextEditor?.document.fileName; 
-            if (!editorPath) {
+export async function parseCProfilerOutput() {
+    try {
+        goToWorkspaceWithProfileFile();
+        const pythonPath = await getPythonPath();
+        const parseScriptPath = path.join(__dirname, 'parse_profile.py');
+        const parseCommand = `${pythonPath} ${parseScriptPath} ${OUTPUT_FILE_NAME}`;
+        childProcess.exec(parseCommand, (error, stdout, stderr) => {
+            if (error) {
+                vscode.window.showErrorMessage(`Error parsing profile data: ${stderr}`);
+                console.error(`Error parsing profile data: ${stderr}`);
                 return;
             }
-            addInlineHints(parseStdout, editorPath);
-        } catch (e: any) {
-            vscode.window.showErrorMessage(`Error adding inline hints: ${e.message}`);
-            console.error(`Error adding inline hints: ${e.message}`);
-        }
-    });
-    
+
+            addInlineHints(stdout);
+        });
+    } catch (error: any) {
+        vscode.window.showErrorMessage(error.message);
+        console.error(error.message);
+        return;
+    }
 }
 
 export async function runProfiler(filePath: string) {
-    const outputFilePath = `cprofiler.prof`;
-    const pythonInterpreter = await getSelectedInterpreter();
-    const pythonPath = pythonInterpreter.path;
-
-    // move to the workspace folder
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (!workspaceFolders) {
-        vscode.window.showErrorMessage('No workspace folder is open');
-        return;
-    }
-    const workspacePath = workspaceFolders[0].uri.fsPath;
-    process.chdir(workspacePath);
-
-    const command = `${pythonPath} -m cProfile -o ${outputFilePath} ${filePath}`;
-
-    child_process.exec(command, (error, stdout, stderr) => {
+    process.chdir(path.dirname(filePath));
+    const pythonPath = await getPythonPath();
+    const command = `${pythonPath} -m cProfile -o ${OUTPUT_FILE_NAME} ${filePath}`;
+    childProcess.exec(command, (error, stdout, stderr) => {
         if (error) {
             vscode.window.showErrorMessage(`Error profiling file: ${stderr}`);
             console.error(`Error profiling file: ${stderr}`);
             return;
         }
 
-        parseAndAddInlineHints();
+        parseCProfilerOutput();
     });
 }

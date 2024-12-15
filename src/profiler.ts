@@ -22,7 +22,7 @@ async function getPythonPath() {
     return selectedInterpreter.path;
 }
 
-function goToWorkspaceWithProfileFile() {
+function goToFolderWithCProfileOutput() {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) {
         throw new Error('No workspace folder is open');
@@ -41,29 +41,23 @@ function goToWorkspaceWithProfileFile() {
     }
 }
 
-export async function parseCProfilerOutput() {
-    try {
-        goToWorkspaceWithProfileFile();
-        const pythonPath = await getPythonPath();
-        const parseScriptPath = path.join(__dirname, 'parse_profile.py');
-        const parseCommand = `${pythonPath} ${parseScriptPath} ${OUTPUT_FILE_NAME}`;
-        childProcess.exec(parseCommand, (error, stdout, stderr) => {
-            if (error) {
-                vscode.window.showErrorMessage(`Error parsing profile data: ${stderr}`);
-                console.error(`Error parsing profile data: ${stderr}`);
-                return;
-            }
+export async function parseCProfileOutput() {
+    goToFolderWithCProfileOutput();
+    const pythonPath = await getPythonPath();
+    const parseScriptPath = path.join(__dirname, 'parse_profile.py');
+    const parseCommand = `${pythonPath} ${parseScriptPath} ${OUTPUT_FILE_NAME}`;
+    childProcess.exec(parseCommand, (error, stdout, stderr) => {
+        if (error) {
+            vscode.window.showErrorMessage(`Error parsing profile data: ${stderr}`);
+            console.error(`Error parsing profile data: ${stderr}`);
+            return;
+        }
 
-            addInlineHints(stdout);
-        });
-    } catch (error: any) {
-        vscode.window.showErrorMessage(error.message);
-        console.error(error.message);
-        return;
-    }
+        addInlineHints(stdout);
+    });
 }
 
-export async function runProfiler(filePath: string) {
+export async function runCProfile(filePath: string) {
     process.chdir(path.dirname(filePath));
     const pythonPath = await getPythonPath();
     const command = `${pythonPath} -m cProfile -o ${OUTPUT_FILE_NAME} ${filePath}`;
@@ -74,6 +68,6 @@ export async function runProfiler(filePath: string) {
             return;
         }
 
-        parseCProfilerOutput();
+        parseCProfileOutput();
     });
 }

@@ -1,7 +1,7 @@
 {
-  "name": "python-cprofiler",
-  "displayName": "Python cProfiler",
-  "description": "Wrapper for python cProfiler with inline hints.",
+  "name": "python-cprofile",
+  "displayName": "Python cProfile",
+  "description": "Wrapper for python cProfile module with inline hints.",
   "version": "0.0.1",
   "publisher": "saysaeqo",
   "engines": {
@@ -17,9 +17,14 @@
   "contributes": {
     "commands": [
       {
-        "command": "python-cprofiler.profileCode",
+        "command": "python-cprofile.profileCode",
         "title": "Profile Python Code",
-        "category": "Python cProfiler"
+        "category": "Python cProfile"
+      },
+      {
+        "command": "python-cprofile.addInlineHints",
+        "title": "Add Inline Hints",
+        "category": "Python cProfile"
       }
     ]
   },

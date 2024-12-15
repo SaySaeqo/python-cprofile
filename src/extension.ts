@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { runProfiler, parseCProfilerOutput } from './profiler';
+import { runCProfile, parseCProfileOutput } from './profiler';
 
 function requirePythonEditor(): vscode.TextEditor {
     const editor = vscode.window.activeTextEditor;
@@ -13,19 +13,31 @@ function requirePythonEditor(): vscode.TextEditor {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    context.subscriptions.push(vscode.commands.registerCommand('python-cprofiler.profileCode', async () => {
-        const editor = requirePythonEditor();
-        runProfiler(editor.document.fileName);
+    context.subscriptions.push(vscode.commands.registerCommand('python-cprofile.profileCode', async () => {
+        try {
+            const editor = requirePythonEditor();
+            runCProfile(editor.document.fileName);
+        } catch (error: any) {
+            vscode.window.showErrorMessage(error.message);
+        }
     }
     ));
-    context.subscriptions.push(vscode.commands.registerCommand('python-cprofiler.addInlineHints', async () => {
-        requirePythonEditor();
-        parseCProfilerOutput();
+    context.subscriptions.push(vscode.commands.registerCommand('python-cprofile.addInlineHints', async () => {
+        try {
+            const editor = requirePythonEditor();
+            parseCProfileOutput();
+        } catch (error: any) {
+            vscode.window.showErrorMessage(error.message);
+        }
     }));
 
     vscode.window.onDidChangeActiveTextEditor(async (editor?: vscode.TextEditor) => {
         if (editor && editor.document.languageId === 'python') {
-            parseCProfilerOutput();
+            try {
+                parseCProfileOutput();
+            } catch (error: any) {
+                // Ignore errors
+            }
         }
     });
 }

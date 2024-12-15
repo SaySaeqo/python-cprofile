@@ -1,13 +1,14 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
+let decorationTypes: vscode.TextEditorDecorationType[] = [];
+
 export function addInlineHints(profileData: string) {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
         return;
     }
     const filePath = editor.document.fileName;
-
     const thisFileData = profileData.split('\n')
                                 .map(line => line.split(' '))
                                 .filter(line => line[0] === filePath || line[0] === filePath.substring(filePath.lastIndexOf(path.delimiter + 1)));
@@ -16,6 +17,7 @@ export function addInlineHints(profileData: string) {
     }
     const thisFileMaxTime = Math.max(...thisFileData.map(data => parseFloat(data[3])));
 
+    decorationTypes.forEach(decorationType => decorationType.dispose());
     thisFileData.forEach(data => {
         const [filename, functionName, lineNumText, time] = data;
         const lineNum = parseInt(lineNumText) - 1;
@@ -32,13 +34,11 @@ export function addInlineHints(profileData: string) {
                 margin: '0 0 0 1em'
             }
         });
+        decorationTypes.push(decorationType);
         const range = new vscode.Range(lineNum, 0, lineNum, 0);
         const options: vscode.DecorationOptions[] = [{ range }];
         editor.setDecorations(decorationType, options);
     });
-
-    //TODO - Refresh decorations after new cprofile run
-    //TODO - Check if works for windows
 }
 
 function getColorForExecutionTime(time: number, maxTime: number): string {

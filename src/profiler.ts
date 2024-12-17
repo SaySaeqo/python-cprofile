@@ -47,6 +47,24 @@ function goToFolderWithCProfileOutput() {
     }
 }
 
+function goToWorkspaceRootForPath(filepath: string) {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        throw new Error('No workspace folder is open');
+    }
+    let found = false;
+    workspaceFolders.forEach(async (folder) => {
+        if (path.relative(folder.uri.fsPath, filepath)) {
+            process.chdir(folder.uri.fsPath);
+            found = true;
+            return;
+        }
+    });
+    if (!found) {
+        throw new Error('No profile data found');
+    }
+}
+
 export async function parseCProfileOutput() {
     goToFolderWithCProfileOutput();
     const pythonPath = await getPythonPath();
@@ -64,7 +82,7 @@ export async function parseCProfileOutput() {
 }
 
 export async function runCProfile(filePath: string) {
-    process.chdir(path.dirname(filePath));
+    goToWorkspaceRootForPath(filePath);
     const pythonPath = await getPythonPath();
     const command = `${pythonPath} -m cProfile -o ${getOutputFileName()} ${filePath}`;
     childProcess.exec(command, (error, stdout, stderr) => {

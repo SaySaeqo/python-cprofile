@@ -26,7 +26,17 @@
         "title": "Add Inline Hints",
         "category": "Python cProfile"
       }
-    ]
+    ],
+    "configuration": {
+      "properties": {
+        "python-cprofile.cprofileOutputFileName": {
+          "type": "string",
+          "default": "cprofile_output.prof",
+          "description": "Name of the output file for cProfile python module",
+          "minLength": 1
+        }
+      }
+    }
   },
   "extensionDependencies": [
     "ms-python.python"

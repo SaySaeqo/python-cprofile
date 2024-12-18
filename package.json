@@ -3,16 +3,35 @@
   "displayName": "Python cProfile",
   "description": "Wrapper for python cProfile module with inline hints.",
   "version": "1.0.0",
+  "license": "MIT",
   "publisher": "saysaeqo",
+  "keywords": [
+    "python",
+    "cProfile",
+    "profiling",
+    "profiler",
+    "performance",
+    "inline hints",
+    "code hints",
+    "decorators"
+  ],
   "engines": {
     "vscode": "^1.96.0"
   },
   "categories": [
-    "Other"
+    "Programming Languages", "Other"
   ],
+  "icon": "images/icon.png",
   "activationEvents": [
     "onLanguage:python"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SaySaeqo/python-cprofile.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SaySaeqo/python-cprofile/issues"
+  },
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [

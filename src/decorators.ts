@@ -3,6 +3,24 @@ import * as path from 'path';
 
 let decorationTypes: vscode.TextEditorDecorationType[] = [];
 
+function findClosestLineNum(functionName: string, document: vscode.TextDocument, i: number): number {
+    const includesFunctionDef = (num: number) => document.lineAt(num).text.includes(`def ${functionName}(`);
+    if (includesFunctionDef(i)){ return i; }
+    let b = i;
+    let a = i;
+    while (b > 0 || a < document.lineCount - 1) {
+        if (b > 0) {
+            b = b-1;
+            if (includesFunctionDef(b)) { return b; }
+        }
+        if (a < document.lineCount - 1) {
+            a = a+1;
+            if (includesFunctionDef(a)) { return a; }
+        }
+    }
+    return -1;
+}
+
 export function addInlineHints(profileData: string) {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
@@ -25,6 +43,11 @@ export function addInlineHints(profileData: string) {
         const roundedTime = executionTime.toFixed(3);
         const color = getColorForExecutionTime(executionTime, thisFileMaxTime);
 
+        const closestLineNum = findClosestLineNum(functionName, editor.document, lineNum);
+        if (closestLineNum === -1) {
+            return;
+        }
+
         const decorationType = vscode.window.createTextEditorDecorationType({
             backgroundColor: color,
             isWholeLine: true,
@@ -35,7 +58,8 @@ export function addInlineHints(profileData: string) {
             }
         });
         decorationTypes.push(decorationType);
-        const range = new vscode.Range(lineNum, 0, lineNum, 0);
+        
+        const range = new vscode.Range(closestLineNum, 0, closestLineNum, 0);
         const options: vscode.DecorationOptions[] = [{ range }];
         editor.setDecorations(decorationType, options);
     });

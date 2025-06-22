@@ -6,6 +6,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+- Nothing.
+
+## [1.0.1]
+
 - Issue #1 - Fix for project path with spaces.
 
 ## [1.0.0] - 2024-12-18

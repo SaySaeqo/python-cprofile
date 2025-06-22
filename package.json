@@ -2,7 +2,7 @@
   "name": "python-cprofile",
   "displayName": "Python cProfile",
   "description": "Wrapper for python cProfile module with inline hints.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "publisher": "saysaeqo",
   "keywords": [

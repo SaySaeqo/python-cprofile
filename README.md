@@ -32,3 +32,7 @@ Runs autamically after opening new file to add inline hints (trigger it manually
 ### 1.0.0
 
 Initial release.
+
+### 1.0.1
+
+Fix for project path with spaces.

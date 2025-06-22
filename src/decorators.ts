@@ -28,16 +28,16 @@ export function addInlineHints(profileData: string) {
     }
     const filePath = editor.document.fileName;
     const thisFileData = profileData.split('\n')
-                                .map(line => line.split(' '))
-                                .filter(line => line[0] === filePath || line[0] === filePath.substring(filePath.lastIndexOf(path.delimiter + 1)));
+                                .filter(line => line.startsWith(filePath))
+                                .map(line => line.substring(filePath.length+1).split(' '));
     if (!thisFileData) {
         return;
     }
-    const thisFileMaxTime = Math.max(...thisFileData.map(data => parseFloat(data[3])));
+    const thisFileMaxTime = Math.max(...thisFileData.map(data => parseFloat(data[2])));
 
     decorationTypes.forEach(decorationType => decorationType.dispose());
     thisFileData.forEach(data => {
-        const [filename, functionName, lineNumText, time] = data;
+        const [functionName, lineNumText, time] = data;
         const lineNum = parseInt(lineNumText) - 1;
         const executionTime = parseFloat(time);
         const roundedTime = executionTime.toFixed(3);

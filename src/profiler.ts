@@ -69,7 +69,7 @@ export async function parseCProfileOutput() {
     goToFolderWithCProfileOutput();
     const pythonPath = await getPythonPath();
     const parseScriptPath = path.join(__dirname, 'parse_profile.py');
-    const parseCommand = `${pythonPath} ${parseScriptPath} ${getOutputFileName()}`;
+    const parseCommand = `"${pythonPath}" "${parseScriptPath}" "${getOutputFileName()}"`;
     childProcess.exec(parseCommand, (error, stdout, stderr) => {
         if (error) {
             vscode.window.showErrorMessage(`Error parsing profile data: ${stderr}`);
@@ -84,7 +84,7 @@ export async function parseCProfileOutput() {
 export async function runCProfile(filePath: string) {
     goToWorkspaceRootForPath(filePath);
     const pythonPath = await getPythonPath();
-    const command = `${pythonPath} -m cProfile -o ${getOutputFileName()} ${filePath}`;
+    const command = `"${pythonPath}" -m cProfile -o "${getOutputFileName()}" "${filePath}"`;
     childProcess.exec(command, (error, stdout, stderr) => {
         if (error) {
             vscode.window.showErrorMessage(`Error profiling file: ${stderr}`);

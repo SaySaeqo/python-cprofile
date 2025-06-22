@@ -11,7 +11,7 @@ This extension has 2 helpful commands.
 ### python-cprofile.profileCode
 Runs shell command for executing cProfile python module for current file and generates profile output that can be parsed later
 ### python-cprofile.addInlineHints
-Runs autamically after opening new file to add inline hints (trigger it manually for error messages if something go wrong on your side)
+Runs automatically after opening new file to add inline hints (trigger it manually for error messages if something go wrong on your side)
 
 ![inline-hints](images/inline-hints.png)
 

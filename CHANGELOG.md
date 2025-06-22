@@ -8,7 +8,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 - Nothing.
 
-## [1.0.1]
+## [1.0.1] - 2025-06-22
 
 - Issue #1 - Fix for project path with spaces.
 

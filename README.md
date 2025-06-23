@@ -1,6 +1,6 @@
 # python-cprofile vscode extension
 
-Wrapper for builtin python module 'cProfile' for profiling python code (measure time of execution for all functions/methods).  
+Wrapper for builtin python module 'cProfile' for profiling python code (measure time of execution for all functions/methods). It adds (and caches) coloring and time hints for all defined functions after profiling is performed through vsc command.  
 
 ## Features
 
